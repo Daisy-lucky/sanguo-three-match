@@ -4,7 +4,7 @@
 
 ## 🎮 在线游玩
 
-**https://daisy-lucky.gitee.io/sanguo-three-match/**
+**https://daisy-lucky.github.io/sanguo-three-match/**
 
 ---
 
@@ -105,14 +105,15 @@ sanguo-three-match/
 
 ---
 
-## 🚀 部署到码云 Pages
+## 🚀 部署到 GitHub Pages
 
-1. 创建仓库并推送代码
-2. 进入仓库 → 服务 → Gitee Pages
-3. 选择分支（main/master）
-4. 点击启动
+项目已配置自动部署：
 
-访问：`https://<username>.gitee.io/sanguo-three-match/`
+1. 推送代码到 `main` 分支
+2. GitHub Actions 自动构建
+3. 部署到 GitHub Pages
+
+访问：`https://daisy-lucky.github.io/sanguo-three-match/`
 
 ---
 
@@ -149,8 +150,10 @@ MIT License
 
 **HePeng**
 
-Gitee: [Daisy-lucky](https://gitee.com/Daisy-lucky)
+GitHub: [Daisy-lucky](https://github.com/Daisy-lucky)
 
 ---
 
-**🎮 立即开始：https://daisy-lucky.gitee.io/sanguo-three-match/**
+**🎮 立即开始：https://daisy-lucky.github.io/sanguo-three-match/**
+
+[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
