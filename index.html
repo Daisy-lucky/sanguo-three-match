@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>三国消消乐 - 微信小游戏</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-user-select: none; }
+        body {
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            font-family: 'Microsoft YaHei', sans-serif;
+            overflow: hidden;
+            color: #fff;
+            touch-action: none;
+        }
+        #game-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+        }
+        
+        /* 顶部信息 */
+        #top-bar {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+        }
+        .level-info { font-size: 18px; font-weight: bold; color: #ffd700; }
+        .progress-info { font-size: 14px; color: #aaa; }
+        
+        /* 游戏区域 */
+        #game-area {
+            flex: 1;
+            width: 100%;
+            max-width: 400px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #card-board {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        .card {
+            position: absolute;
+            width: 50px;
+            height: 60px;
+            background: linear-gradient(180deg, #fff 0%, #e0e0e0 100%);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.15s, filter 0.15s;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+            border: 2px solid #8b4513;
+        }
+        .card:active { transform: scale(0.95); }
+        .card.disabled { filter: brightness(0.5); cursor: not-allowed; }
+        .card.selected { transform: translateY(-10px); box-shadow: 0 10px 20px rgba(255,215,0,0.5); border-color: #ffd700; }
+        .card-emoji { font-size: 28px; }
+        .card-faction { font-size: 10px; margin-top: 2px; }
+        .card.faction-wei { border-color: #4a90d9; }
+        .card.faction-shu { border-color: #5cb85c; }
+        .card.faction-wu { border-color: #d9534f; }
+        .card.faction-qun { border-color: #f0ad4e; }
+        .card.faction-item { border-color: #9c27b0; }
+        
+        /* 卡槽区域 */
+        #slot-area {
+            width: 100%;
+            max-width: 400px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+        #card-slots {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            min-height: 70px;
+        }
+        .slot {
+            width: 50px;
+            height: 60px;
+            background: rgba(255,255,255,0.1);
+            border: 2px dashed rgba(255,255,255,0.3);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .slot .card { position: static; }
+        
+        /* 道具栏 */
+        #tools-bar {
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+        .tool-btn {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(180deg, #4a4a6a 0%, #2d2d44 100%);
+            border: 2px solid #666;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .tool-btn:active { transform: scale(0.9); }
+        .tool-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .tool-icon { font-size: 24px; }
+        .tool-count { font-size: 12px; color: #ffd700; margin-top: 3px; }
+        
+        /* 游戏结束弹窗 */
+        #game-over {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        #game-over.show { display: flex; }
+        .game-over-title { font-size: 48px; margin-bottom: 20px; }
+        .game-over-title.win { color: #4caf50; }
+        .game-over-title.lose { color: #f44336; }
+        .restart-btn {
+            background: linear-gradient(180deg, #8b4513 0%, #5c2e0a 100%);
+            border: 3px solid #ffd700;
+            color: #ffd700;
+            padding: 15px 50px;
+            font-size: 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        
+        /* 开始界面 */
+        #start-screen {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        #start-screen.hidden { display: none; }
+        .game-title { font-size: 42px; color: #ffd700; margin-bottom: 10px; text-shadow: 0 0 20px rgba(255,215,0,0.5); }
+        .game-subtitle { font-size: 18px; color: #aaa; margin-bottom: 30px; }
+        .start-btn {
+            background: linear-gradient(180deg, #8b4513 0%, #5c2e0a 100%);
+            border: 3px solid #ffd700;
+            color: #ffd700;
+            padding: 15px 60px;
+            font-size: 22px;
+            border-radius: 12px;
+            cursor: pointer;
+        }
+        
+        /* 连击提示 */
+        #combo-display {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 36px;
+            font-weight: bold;
+            color: #ffd700;
+            text-shadow: 0 0 20px rgba(255,215,0,0.8);
+            pointer-events: none;
+            opacity: 0;
+            z-index: 500;
+        }
+        #combo-display.show { animation: comboAnim 1s ease-out; }
+        @keyframes comboAnim {
+            0% { opacity: 1; transform: translate(-50%, -50%) scale(0.5); }
+            50% { transform: translate(-50%, -50%) scale(1.2); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <!-- 开始界面 -->
+    <div id="start-screen">
+        <div class="game-title">🎴 三国消消乐</div>
+        <div class="game-subtitle">Three Kingdoms Match</div>
+        <button class="start-btn" onclick="game.startGame()">开始游戏</button>
+    </div>
+    
+    <!-- 游戏结束弹窗 -->
+    <div id="game-over">
+        <div class="game-over-title" id="game-over-title">游戏结束</div>
+        <button class="restart-btn" onclick="game.restartGame()">再来一局</button>
+        <button class="restart-btn" onclick="game.nextLevel()" id="next-level-btn" style="display:none;">下一关 ▶</button>
+    </div>
+    
+    <div id="game-container">
+        <!-- 顶部信息 -->
+        <div id="top-bar">
+            <div class="level-info">第 <span id="level-num">1</span> 关</div>
+            <div class="progress-info">剩余：<span id="cards-left">0</span>张</div>
+        </div>
+        
+        <!-- 游戏区域 -->
+        <div id="game-area">
+            <div id="card-board"></div>
+            <div id="combo-display"></div>
+        </div>
+        
+        <!-- 道具栏 -->
+        <div id="tools-bar">
+            <div class="tool-btn" onclick="game.useTool('undo')">
+                <div class="tool-icon">↩️</div>
+                <div class="tool-count" id="tool-undo">3</div>
+            </div>
+            <div class="tool-btn" onclick="game.useTool('shuffle')">
+                <div class="tool-icon">🔀</div>
+                <div class="tool-count" id="tool-shuffle">3</div>
+            </div>
+            <div class="tool-btn" onclick="game.useTool('hint')">
+                <div class="tool-icon">💡</div>
+                <div class="tool-count" id="tool-hint">3</div>
+            </div>
+            <div class="tool-btn" onclick="game.useTool('addSlot')">
+                <div class="tool-icon">➕</div>
+                <div class="tool-count" id="tool-addslot">1</div>
+            </div>
+        </div>
+        
+        <!-- 卡槽区域 -->
+        <div id="slot-area">
+            <div id="card-slots"></div>
+        </div>
+    </div>
+    
+    <script src="js/game.js"></script>
+</body>
+</html>
